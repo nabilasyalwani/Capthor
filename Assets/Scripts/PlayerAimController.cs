@@ -25,7 +25,8 @@ public class PlayerAimController : MonoBehaviour
     private bool m_isAiming = false;
     private Vector2 m_landPosition = Vector2.zero;
 
-    private void Start() {
+    private void Start()
+    {
         m_throwSound = GetComponent<AudioSource>();
 
         m_lineRenderer.enabled = false;
@@ -36,7 +37,7 @@ public class PlayerAimController : MonoBehaviour
 
         float alpha = 1.0f;
         Gradient gradient = new Gradient();
-        
+
         gradient.SetKeys(
             new GradientColorKey[] { new GradientColorKey(c1, 0.0f), new GradientColorKey(c2, 1.0f) },
             new GradientAlphaKey[] { new GradientAlphaKey(alpha * 0.1f, 0.0f), new GradientAlphaKey(alpha, 1.0f) }
@@ -47,14 +48,16 @@ public class PlayerAimController : MonoBehaviour
         ReloadWeapon();
     }
 
-    private void StartAiming() {
+    private void StartAiming()
+    {
         m_lineRenderer.enabled = true;
         m_currentTargetAngle = m_endAngle;
         m_isAimingUp = true;
         m_isAiming = true;
     }
 
-    void Update() {
+    void Update()
+    {
 
         if (m_endMenu.activeInHierarchy)
             return;
@@ -67,35 +70,39 @@ public class PlayerAimController : MonoBehaviour
 
         m_handRotationPivot.transform.localEulerAngles = new Vector3(0.0f, 0.0f, newAngle);
 
-        if( Mathf.Approximately(newAngle, target) ) {
+        if (Mathf.Approximately(newAngle, target))
+        {
             m_isAimingUp = !m_isAimingUp;
             m_handRotationPivot.transform.localEulerAngles = new Vector3(0.0f, 0.0f, target);
         }
 
         DrawProjectilePath();
 
-        if (Input.GetKeyDown(KeyCode.Space)) {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
             Shoot();
         }
     }
 
-    private void Shoot() {
+    private void Shoot()
+    {
         m_throwSound.Play();
 
         Debug.Log("HEREEEE");
 
         m_isAiming = false;
         m_lineRenderer.enabled = false;
-        
+
         GameObject weaponGameObject = m_hand.transform.GetChild(0).gameObject;
         weaponGameObject.transform.parent = null;
 
         Weapons currentWeapon = weaponGameObject.GetComponent<Weapons>();
-        currentWeapon.Throw(m_initialVelocity, m_handRotationPivot.transform.localEulerAngles.z, "Enemy",m_damageAttack);
+        currentWeapon.Throw(m_initialVelocity, m_handRotationPivot.transform.localEulerAngles.z, "Enemy", m_damageAttack);
 
     }
 
-    private void DrawProjectilePath() {
+    private void DrawProjectilePath()
+    {
 
         float cosTheta = Mathf.Cos(m_handRotationPivot.transform.localEulerAngles.z * Mathf.Deg2Rad);
         float sinTheta = Mathf.Sin(m_handRotationPivot.transform.localEulerAngles.z * Mathf.Deg2Rad);
@@ -107,43 +114,16 @@ public class PlayerAimController : MonoBehaviour
         float c = initialPosition.y - (-2.0f);
         float t = (-b - Mathf.Sqrt((b * b) - 4 * a * c)) / (2.0f * a);
 
-        bool targetFound = false;
-        Vector2 pos = Vector2.zero;
+        for (int i = 0; i <= m_numOfPoints; i++)
+        {
 
-        for (int i = 0; i <= m_numOfPoints; i++) {
-            
             float currentDelta = (i / (float)m_numOfPoints) * t;
             float x = initialPosition.x + m_initialVelocity * currentDelta * cosTheta;
             float y = initialPosition.y + m_initialVelocity * currentDelta * sinTheta - (1.0f / 2.0f) * gravity * currentDelta * currentDelta;
-            pos = new Vector2(x, y);
 
-            if (!targetFound) {
-                if (CheckForCollision(pos)) {
-                    m_landPosition = pos;
-                    targetFound = true;
-                }
-            }
-            
             m_lineRenderer.SetPosition(i, new Vector3(x, y, 0.0f));
 
         }
-
-        if (!targetFound)
-            m_landPosition = pos;
-
-    }
-
-    private bool CheckForCollision( Vector2 pos ) {
-
-        RaycastHit2D hit = Physics2D.CircleCast(
-            pos, 
-            0.1f, 
-            Vector2.zero, 
-            0.0f,
-            m_layer
-        );
-
-        return hit;
 
     }
 
@@ -162,7 +142,7 @@ public class PlayerAimController : MonoBehaviour
         GameObject obj = collision.gameObject;
         Debug.Log(obj.name);
 
-         if (obj.CompareTag("Bullet"))
+        if (obj.CompareTag("Bullet"))
         {
             m_playerHealth.ReduceHealth(obj.GetComponent<EnemyBullet>().damageAttack);
             Destroy(obj);
